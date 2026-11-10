@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simple Score Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Disable native touch behaviors like pull-to-refresh and zooming */
+        body {
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+    </style>
+</head>
+<body class="m-0 overflow-hidden select-none font-sans text-white h-screen w-screen relative flex">
+
+    <!-- Blue Team Left Half -->
+    <div id="blue-zone" class="w-1/2 h-full bg-blue-500 flex justify-center items-center cursor-pointer hover:bg-blue-600 transition-colors duration-200 active:bg-blue-700">
+        <span id="blue-score" class="text-[20vw] font-bold drop-shadow-xl pointer-events-none">0</span>
+    </div>
+
+    <!-- Red Team Right Half -->
+    <div id="red-zone" class="w-1/2 h-full bg-red-500 flex justify-center items-center cursor-pointer hover:bg-red-600 transition-colors duration-200 active:bg-red-700">
+        <span id="red-score" class="text-[20vw] font-bold drop-shadow-xl pointer-events-none">0</span>
+    </div>
+
+    <!-- Neutral Reset Button -->
+    <button id="reset-btn" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 hover:text-gray-900 px-6 py-2 rounded-full font-semibold shadow-lg hover:bg-white active:scale-95 transition-all duration-200 z-10 border border-gray-300">
+        Reset
+    </button>
+
+    <script>
+        // State variables
+        let redScore = 0;
+        let blueScore = 0;
+
+        // DOM Elements
+        const redScoreDisplay = document.getElementById('red-score');
+        const blueScoreDisplay = document.getElementById('blue-score');
+        const redZone = document.getElementById('red-zone');
+        const blueZone = document.getElementById('blue-zone');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Interaction logic for taps (increment), swipe ups (increment) and swipe downs (decrement)
+        function setupZone(zone, team) {
+            let startY = 0;
+            let startX = 0;
+
+            zone.addEventListener('pointerdown', (e) => {
+                startY = e.clientY;
+                startX = e.clientX;
+            });
+
+            zone.addEventListener('pointerup', (e) => {
+                const deltaY = e.clientY - startY;
+                const deltaX = e.clientX - startX;
+
+                const isSwipeDown = deltaY > 40 && Math.abs(deltaY) > Math.abs(deltaX);
+                const isSwipeUp = deltaY < -40 && Math.abs(deltaY) > Math.abs(deltaX);
+                const isTap = Math.abs(deltaY) < 15 && Math.abs(deltaX) < 15;
+
+                // Swipe down to decrement
+                if (isSwipeDown) {
+                    if (team === 'red') {
+                        redScore = Math.max(0, redScore - 1);
+                        redScoreDisplay.textContent = redScore;
+                    } else {
+                        blueScore = Math.max(0, blueScore - 1);
+                        blueScoreDisplay.textContent = blueScore;
+                    }
+                } 
+                // Tap or swipe up to increment
+                else if (isTap || isSwipeUp) {
+                    if (team === 'red') {
+                        redScore++;
+                        redScoreDisplay.textContent = redScore;
+                    } else {
+                        blueScore++;
+                        blueScoreDisplay.textContent = blueScore;
+                    }
+                }
+            });
+        }
+
+        setupZone(redZone, 'red');
+        setupZone(blueZone, 'blue');
+
+        resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevents the click from triggering the background zones
+            redScore = 0;
+            blueScore = 0;
+            redScoreDisplay.textContent = redScore;
+            blueScoreDisplay.textContent = blueScore;
+        });
+    </script>
+
+</body>
+</html>
